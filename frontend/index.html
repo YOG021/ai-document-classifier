@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocuSense AI – Indian Document OCR Pipeline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+  <!-- ─── HEADER ─── -->
+  <header class="header">
+    <div class="header-brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+      </div>
+      <span class="brand-name">DocuSense <span class="brand-ai">AI</span></span>
+    </div>
+    <p class="header-tagline">Indian Document Classification &amp; Extraction</p>
+  </header>
+
+  <!-- ─── MAIN ─── -->
+  <main class="main">
+
+    <!-- Upload Zone -->
+    <section class="upload-section">
+      <div class="dropzone" id="dropZone">
+        <input type="file" id="fileInput" accept="image/*,application/pdf" hidden>
+        <div class="dz-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div class="dz-text">
+          <p class="dz-main"><strong>Drag &amp; drop</strong> a document here, or <button class="link-btn" id="btnBrowse">browse to upload</button></p>
+          <span class="dz-sub">Supports PDF &middot; PNG &middot; JPG &middot; WEBP</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Supported Document Types -->
+    <section class="supported-docs">
+      <p class="supported-label">Supported document types</p>
+      <div class="doc-cards">
+        <div class="doc-card">
+          <span class="dc-icon">🪪</span>
+          <div>
+            <strong>Aadhaar Card</strong>
+            <small>UIDAI &bull; 12-digit UID &bull; QR &amp; Face</small>
+          </div>
+        </div>
+        <div class="doc-card">
+          <span class="dc-icon">💳</span>
+          <div>
+            <strong>PAN Card</strong>
+            <small>Income Tax Dept &bull; 10-char PAN &bull; Photo</small>
+          </div>
+        </div>
+        <div class="doc-card">
+          <span class="dc-icon">📜</span>
+          <div>
+            <strong>SSC Marks Card</strong>
+            <small>10th Board &bull; Marks / Grades &bull; Roll No</small>
+          </div>
+        </div>
+        <div class="doc-card">
+          <span class="dc-icon">🛂</span>
+          <div>
+            <strong>Passport</strong>
+            <small>MRZ &bull; Biometric &bull; ICAO 9303</small>
+          </div>
+        </div>
+        <div class="doc-card">
+          <span class="dc-icon">📑</span>
+          <div>
+            <strong>Income Certificate</strong>
+            <small>State Govt &bull; Annual Income &bull; G.O. Ref</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+
+    <!-- Pipeline Stepper -->
+    <div class="stepper" id="stepper" style="display:none">
+      <div class="step" id="s1"><div class="step-dot"></div><span>Preprocessing</span></div>
+      <div class="step-line"></div>
+      <div class="step" id="s2"><div class="step-dot"></div><span>OCR</span></div>
+      <div class="step-line"></div>
+      <div class="step" id="s3"><div class="step-dot"></div><span>Classification</span></div>
+      <div class="step-line"></div>
+      <div class="step" id="s4"><div class="step-dot"></div><span>Extraction</span></div>
+      <div class="step-line"></div>
+      <div class="step" id="s5"><div class="step-dot"></div><span>Validation</span></div>
+    </div>
+
+    <!-- ─── RESULT CARD ─── -->
+    <section class="result-card" id="resultCard" style="display:none">
+
+      <!-- Top Row: doc type badge + title -->
+      <div class="result-top">
+        <span class="doc-type-badge" id="rDocBadge">AADHAAR</span>
+        <div class="result-title-wrap">
+          <h2 class="result-title" id="rTitle">Document Title</h2>
+          <p class="result-reasoning" id="rReasoning">Reasoning details appear here</p>
+        </div>
+        <div class="result-meta">
+          <div class="meta-item">
+            <span class="meta-label">Confidence</span>
+            <div class="conf-track"><div class="conf-fill" id="confFill"></div></div>
+            <span class="meta-value" id="confVal">—</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Time</span>
+            <span class="meta-value" id="rTime">—</span>
+          </div>
+          <div class="status-pill" id="rStatus">VALID</div>
+        </div>
+      </div>
+
+      <!-- Anchors Row -->
+      <div class="anchors-row" id="anchorsRow">
+        <span class="anchors-lbl">Anchors:</span>
+        <div class="anchors-tags" id="anchorTags"></div>
+      </div>
+
+      <!-- Alert -->
+      <div class="result-alert" id="resultAlert" style="display:none">
+        <span>⚠️</span>
+        <ul id="alertItems"></ul>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="result-actions">
+        <button class="action-btn preview-btn" id="btnOpenPreview">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          Document Preview
+        </button>
+        <button class="action-btn fields-btn" id="btnOpenFields">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+            <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+            <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+          Extracted Fields
+        </button>
+        <button class="action-btn json-btn" id="btnOpenJson">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+          </svg>
+          JSON Output
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ═══ MODAL: Document Preview ═══ -->
+  <div class="modal-overlay" id="previewModal">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h3>Document Preview</h3>
+        <div class="modal-tabs">
+          <button class="mtab active" id="mtabImg">Image</button>
+          <button class="mtab" id="mtabOcr">Raw OCR <span id="ocrCount" class="count-badge">0</span></button>
+        </div>
+        <button class="modal-close" id="closePreview">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="mpImage" class="mp-image">
+          <img id="previewImg" src="" alt="Document">
+        </div>
+        <div id="mpOcr" class="mp-ocr" style="display:none">
+          <pre id="rawOcrText"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL: Extracted Fields ═══ -->
+  <div class="modal-overlay" id="fieldsModal">
+    <div class="modal modal-medium">
+      <div class="modal-header">
+        <h3>Extracted Fields</h3>
+        <div class="modal-tabs">
+          <button class="mtab active" id="mtabForm">Form Review</button>
+          <button class="mtab" id="mtabJson">JSON</button>
+        </div>
+        <button class="modal-close" id="closeFields">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="mfForm">
+          <form id="fieldsForm" class="fields-grid"></form>
+          <div class="modal-footer-actions">
+            <button class="btn-ghost" id="btnResetForm">Reset</button>
+            <button class="btn-solid" id="btnSaveVerified">✓ Confirm Record</button>
+          </div>
+        </div>
+        <div id="mfJson" style="display:none">
+          <div class="json-toolbar">
+            <span class="json-tag">Verified JSON</span>
+            <div style="display:flex;gap:8px">
+              <button class="btn-ghost sm" id="btnCopyJson">Copy</button>
+              <button class="btn-ghost sm" id="btnDownloadJson">Download</button>
+            </div>
+          </div>
+          <pre class="json-code" id="jsonCode"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
